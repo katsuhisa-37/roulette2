@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ルーレット</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      background: #f9f9f9;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      width: 90vw;
+      max-width: 700px;
+      aspect-ratio: 7 / 5;
+      background-image: url('https://i.postimg.cc/pT7j8g9n/image.png');
+      background-size: cover;
+      background-position: center;
+      border-radius: 10px;
+      position: relative;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+    canvas {
+      width: 90%;
+      max-width: 450px;
+      aspect-ratio: 1 / 1;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: transparent;
+      border-radius: 50%;
+      z-index: 1;
+    }
+    #centerBtn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      font-weight: bold;
+      font-size: 12px;
+      cursor: pointer;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+    }
+    .pointer {
+      position: absolute;
+      top: 2%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 10px;
+      height: 40px;
+      background-color: red;
+      z-index: 3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="pointer"></div>
+    <canvas id="roulette" width="450" height="450"></canvas>
+    <button id="centerBtn">START</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("roulette");
+    const ctx = canvas.getContext("2d");
+    const btn = document.getElementById("centerBtn");
+
+    let segments = [
+      "もてもてキキ 100円引き", "はるか 100円引き",
+      "愛してアイコ 50円引き", "もてもてキキ ？",
+      "オススメ ？", "愛してアイコ 50円引き",
+      "もてもてキキ 50円引き", "北の極み 100円引き"
+    ];
+
+    const colors = [
+      "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0",
+      "#9966FF", "#FF9F40", "#8bc34a", "#e91e63"
+    ];
+
+    const segmentAngle = 2 * Math.PI / segments.length;
+    let startAngle = 0;
+    let rotationSpeed = 0;
+    let spinning = false;
+    let stopping = false;
+
+    function drawRoulette() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < segments.length; i++) {
+        const angle = startAngle + i * segmentAngle;
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2, canvas.height / 2);
+        ctx.arc(canvas.width / 2, canvas.height / 2, 225, angle, angle + segmentAngle);
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fill();
+
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(angle + segmentAngle / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 14px sans-serif";
+        ctx.fillText(segments[i], 200, 5);
+        ctx.restore();
+      }
+    }
+
+    function animateSpin() {
+      if (!spinning) return;
+      startAngle += rotationSpeed;
+      drawRoulette();
+
+      if (stopping) {
+        rotationSpeed *= 0.98;
+        if (rotationSpeed < 0.002) {
+          spinning = false;
+          stopping = false;
+          rotationSpeed = 0;
+          btn.textContent = "START";
+          return;
+        }
+      }
+      requestAnimationFrame(animateSpin);
+    }
+
+    btn.addEventListener("click", () => {
+      if (!spinning) {
+        rotationSpeed = 0.2;
+        spinning = true;
+        stopping = false;
+        btn.textContent = "STOP";
+        requestAnimationFrame(animateSpin);
+      } else if (!stopping) {
+        stopping = true;
+      }
+    });
+
+    drawRoulette();
+  </script>
+</body>
+</html>
